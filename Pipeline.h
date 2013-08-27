@@ -11,10 +11,10 @@ public:
 	typedef typename std::function<bool (T &)> ApplyFunction;
 	typedef typename std::function<void (T &)> RollbackFunction;
 
-	Pipeline<T> &AddFilter(ApplyFunction stage);
-	Pipeline<T> &operator|(ApplyFunction stage);
+	Pipeline<T> &AddStage(
+		ApplyFunction applyFunc,
+		RollbackFunction rollbackFunc = RollbackFunction());
 
-	Pipeline<T> &AddStage(std::pair<ApplyFunction, RollbackFunction> stage);
 	bool operator()(T &message);
 
 private:
@@ -22,21 +22,9 @@ private:
 };
 
 template<class T>
-Pipeline<T> &Pipeline<T>::AddFilter(ApplyFunction stage)
+Pipeline<T> &Pipeline<T>::AddStage(ApplyFunction applyFunc, RollbackFunction rollbackFunc)
 {
-	return AddStage(std::make_pair(stage, RollbackFunction()));
-}
-
-template<class T>
-Pipeline<T> &Pipeline<T>::operator|(ApplyFunction stage)
-{
-	return AddStage(std::make_pair(stage, RollbackFunction()));
-}
-
-template<class T>
-Pipeline<T> &Pipeline<T>::AddStage(std::pair<ApplyFunction, RollbackFunction> stage)
-{
-	_stages.push_back(stage);
+	_stages.push_back(std::make_pair(applyFunc, rollbackFunc));
 	return *this;
 }
 
